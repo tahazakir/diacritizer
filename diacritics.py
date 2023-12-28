@@ -1,4 +1,6 @@
 from openai import OpenAI
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
@@ -6,9 +8,18 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+app = Flask(__name__)
+CORS(app)
+
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-few_shot = '''
+@app.route('/diacritize', methods=['POST'])
+def diacritize():
+
+    data = request.json
+    non_diacritized_text = data.get("text")
+
+    few_shot = '''
 Non-Diacritized:
 
 معلوم نہیں یہ بات معقول تھی یا غیر معقول، بہرحال دانش مندوں کے فیصلے کے مطابق ادھر ادھر اونچی سطح کی کانفرنسیں ہوئیں اور بالآخر ایک دن پاگلوں کے تبادلے کے لیے مقرر ہوگیا۔ اچھی طرح چھان بین کی گئی۔
@@ -50,8 +61,6 @@ Diacritized:
 ’’آپ کی بَڑی نَوازِش ہے۔‘‘ 
 '''
 
-def diacritize(non_diacritized_text):
-
     system_message = "The following are examples of Urdu sentences with and without diacritics. Please add diacritics to the non-diacritized sentence."
 
     user_message = few_shot + f"\nNon-Diacritized:\n\n{non_diacritized_text}\n\nDiacritized:"
@@ -67,12 +76,7 @@ def diacritize(non_diacritized_text):
     # The response from the API will be in the form of a conversation, so we grab the last message
     diacritized = response.choices[0].message.content
 
-    return diacritized
+    return jsonify({"diacritized_text": diacritized})
 
-non_diacritized = "دو چوہے تھے جو ایک دوسرے کے بہت گہرے دوست تھے۔ایک چوہا شہر کی ایک حویلی میں بل بنا کر رہتا تھا اور دوسرا پہاڑوں کے درمیان ایک گاؤں میں رہتا تھا۔گاؤں اور شہر میں فاصلہ بہت تھا،اس لئے وہ کبھی کبھار ہی ایک دوسرے سے ملتے تھے۔"
-
-diacritized_text = diacritize(non_diacritized)
-
-# Write the response to a text file
-with open('dou-chuhey-2.txt', 'w', encoding='utf-8') as file:
-    file.write(diacritized_text)
+if __name__ == '__main__':
+    app.run(debug=True)

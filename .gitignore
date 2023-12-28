@@ -1,0 +1,14 @@
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Specifc
+.env
+tts-env
+audios
+datasets
+misc
